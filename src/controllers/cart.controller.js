@@ -203,7 +203,14 @@ class CartController {
     }
   }
 
-  async deleteAllCarts(req, res) {}
+  async deleteAllCarts(req, res) {
+    try {
+      await cartService.delete();
+      res.status(200).json({ result: "Success", message: "All carts deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ response: "Error", message: error.message });
+    }
+  }
 
   async purchase(req, res) {}
 }
