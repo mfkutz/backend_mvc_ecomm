@@ -1,6 +1,7 @@
 import { cartService } from "../services/cart.service.js";
 import { productService } from "../services/product.service.js";
 import { ticketService } from "../services/ticket.service.js";
+import { mailService } from "../utils/emails.js";
 import { v4 as uuidv4 } from "uuid";
 
 class CartController {
@@ -274,14 +275,14 @@ class CartController {
       await cart.save();
 
       //Send Email
-      // await mailService.sendMail({
-      //   name: `${req.user.first_name} ${req.user.last_name}`,
-      //   to: req.user.email,
-      //   subject: "Compra recibida",
-      //   type: "buy",
-      //   amount,
-      //   products: productDetails,
-      // });
+      await mailService.sendMail({
+        name: `${req.user.first_name} ${req.user.last_name}`,
+        to: req.user.email,
+        subject: "Compra recibida",
+        type: "buy",
+        amount,
+        products: productDetails,
+      });
 
       res.status(200).json({ message: "Buy success", ticket });
     } catch (error) {
