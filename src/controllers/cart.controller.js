@@ -190,7 +190,18 @@ class CartController {
     }
   }
 
-  async deleteAll(req, res) {}
+  async emptyCart(req, res) {
+    const { cid } = req.params;
+    try {
+      const cart = await cartService.getById(cid);
+      if (!cart) return res.status(404).json({ response: "Error", message: "Cart not found" });
+      cart.products = [];
+      await cart.save();
+      res.status(200).json({ result: "Success", message: "Cart emptied successfully" });
+    } catch (error) {
+      res.status(500).json({ response: "Error", message: error.message });
+    }
+  }
 
   async deleteAllCarts(req, res) {}
 
