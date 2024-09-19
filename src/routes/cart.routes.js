@@ -12,5 +12,6 @@ router.get("/:cid", cartController.getById);
 router.post("/:cid/product/:pid", validate(cartQuantityDto), cartController.addProductToCart);
 router.delete("/:cid/product/:pid", cartController.deleteProductFromCart);
 router.put("/:cid", cartController.updateCart);
+router.put("/:cid/product/:pid", cartController.updateQuantity);
 
 export default router;

@@ -151,7 +151,44 @@ class CartController {
     }
   }
 
-  async updateQuantity(req, res) {}
+  async updateQuantity(req, res) {
+    const { cid, pid } = req.params;
+    const { quantity } = req.body;
+    try {
+      const cart = await cartService.getById(cid);
+      if (!cart) return res.status(404).json({ response: "Error", message: "Cart not found" });
+
+      const product = await productService.getById(pid);
+      if (!product)
+        return res.status(404).json({ response: "Error", message: "Product not found" });
+
+      //Stock control
+      if (quantity > product.stock)
+        return res
+          .status(404)
+          .json({ response: "Error", message: "out of stock", in_stock: product.stock });
+
+      if (quantity < 1)
+        return res
+          .status(404)
+          .json({ response: "Error", message: "Quantity cannot be less than 1" });
+
+      const existingProductIndex = cart.products.findIndex(
+        (prod) => prod.product._id.toString() === pid.toString()
+      );
+
+      if (existingProductIndex !== -1) {
+        cart.products[existingProductIndex].quantity = quantity;
+      } else {
+        return res.status(404).json({ response: "Error", message: "Product not found in cart" });
+      }
+
+      await cart.save();
+      res.status(200).json({ result: "Success", message: "Product quantity updated successfully" });
+    } catch (error) {
+      res.status(500).json({ response: "Error", message: error.message });
+    }
+  }
 
   async deleteAll(req, res) {}
 
