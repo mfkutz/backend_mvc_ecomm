@@ -1,5 +1,7 @@
 import { cartService } from "../services/cart.service.js";
 import { productService } from "../services/product.service.js";
+import { ticketService } from "../services/ticket.service.js";
+import { v4 as uuidv4 } from "uuid";
 
 class CartController {
   async addCart(req, res) {
@@ -212,7 +214,80 @@ class CartController {
     }
   }
 
-  async purchase(req, res) {}
+  async purchase(req, res) {
+    const { cid } = req.params;
+
+    try {
+      const cart = await cartService.getById(cid);
+      if (!cart) return res.status(404).json({ response: "Error", message: "Cart not found" });
+
+      if (cart.products.length === 0)
+        return res.status(400).json({ response: "Error", message: "Cart is empty" });
+
+      const productsWithoutStock = [];
+
+      cart.products.forEach((p) => {
+        if (p.product?.stock < p.quantity) {
+          productsWithoutStock.push({
+            productId: p.product._id,
+            productName: p.product.name,
+            quantity: p.quantity,
+            stock: p.product.stock,
+          });
+        }
+      });
+
+      if (productsWithoutStock.length > 0) {
+        return res.status(400).json({
+          error: "Insufficient stock",
+          details: productsWithoutStock,
+        });
+      }
+
+      const promises = cart.products.map((p) =>
+        productService.discountStock(p.product._id, p.quantity)
+      );
+
+      await Promise.all(promises);
+
+      const amount = cart.products.reduce(
+        (acc, curr) => acc + curr.quantity * curr.product.price,
+        0
+      );
+
+      const productDetails = cart.products.map((p) => ({
+        name: p.product.title,
+        quantity: p.quantity,
+        price: p.product.price,
+      }));
+
+      //Ticket
+      const ticket = await ticketService.create({
+        code: uuidv4(),
+        purchase_datatime: new Date(),
+        amount,
+        purchaser: req.user._id,
+        products: cart.products.map((p) => ({ product: p.product._id, quantity: p.quantity })),
+      });
+
+      cart.products = [];
+      await cart.save();
+
+      //Send Email
+      // await mailService.sendMail({
+      //   name: `${req.user.first_name} ${req.user.last_name}`,
+      //   to: req.user.email,
+      //   subject: "Compra recibida",
+      //   type: "buy",
+      //   amount,
+      //   products: productDetails,
+      // });
+
+      res.status(200).json({ message: "Buy success", ticket });
+    } catch (error) {
+      res.status(500).json({ response: "Error", message: error.message });
+    }
+  }
 }
 
 export const cartController = new CartController();
