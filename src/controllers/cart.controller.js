@@ -109,7 +109,47 @@ class CartController {
     }
   }
 
-  async updateCart(req, res) {}
+  async updateCart(req, res) {
+    const { cid } = req.params;
+    // const products = req.body.products;
+    const { products } = req.body;
+
+    try {
+      const cart = await cartService.getById(cid);
+      if (!cart) return res.status(404).json({ response: "Error", message: "Cart not found" });
+      if (!Array.isArray(products))
+        return res.status(400).json({ response: "Error", message: "Products must be an array" });
+
+      for (const item of products) {
+        const productId = item.product;
+        const quantity = item.quantity;
+
+        const product = await productService.getById(productId);
+
+        if (!product)
+          return res
+            .status(404)
+            .json({ response: "Error", message: `Product ${productId} not found` });
+
+        //Update cart with products and quantity
+        const existingProductIndex = cart.products.findIndex(
+          (prod) => prod.product._id.toString() === productId.toString()
+        );
+
+        if (existingProductIndex !== -1) {
+          //If the product is already in the cart, update the quantity
+          cart.products[existingProductIndex].quantity = quantity;
+        } else {
+          //If the product is not in the cart, add it
+          cart.products.push({ product: productId, quantity });
+        }
+      }
+      await cart.save();
+      res.status(200).json({ result: "Success", message: "Cart updated successfully" });
+    } catch (error) {
+      res.status(500).json({ response: "Error", message: error.message });
+    }
+  }
 
   async updateQuantity(req, res) {}
 
