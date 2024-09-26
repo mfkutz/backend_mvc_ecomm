@@ -2,7 +2,7 @@ import { generateToken } from "../utils/jwt.functions.js";
 
 class AuthController {
   async login(req, res) {
-    console.log(req.user);
+    console.log("login", req.user);
     const payload = {
       email: req.user.email,
       role: req.user.role,

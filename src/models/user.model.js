@@ -7,7 +7,11 @@ const userSchema = new Schema(
     last_name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     age: { type: Number, required: true },
-    password: { type: String, required: true },
+    password: {
+      type: String,
+      required: true,
+      select: false, //use with caution
+    },
     role: {
       type: String,
       enum: ["admin", "user"],
@@ -34,3 +38,38 @@ userSchema.pre("save", async function (next) {
 });
 
 export const userModel = model("user", userSchema);
+
+//check "select" here
+
+/* const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+    select: false,  // Excluir por defecto
+  },
+  token: {
+    type: String,
+    select: false,  // Excluir por defecto
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    select: false,  // Excluir por defecto
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+    select: false,  // Excluir por defecto
+  },
+});
+
+const User = mongoose.model("User", userSchema); */

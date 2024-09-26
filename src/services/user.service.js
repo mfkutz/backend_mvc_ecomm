@@ -9,8 +9,12 @@ class UserService {
     return await userModel.findById(id);
   }
 
-  async findOne(email, proyection = {}) {
+  /*  async findOne(email, proyection = {}) {
     return await userModel.findOne(email, proyection);
+  } */
+
+  async findOne(filter, projection = {}) {
+    return await userModel.findOne(filter, projection);
   }
 
   async createUser(user) {
