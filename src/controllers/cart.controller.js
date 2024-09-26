@@ -27,7 +27,6 @@ class CartController {
     const { cid } = req.params;
     try {
       const cart = await cartService.getById(cid);
-      console.log("estamos en el endpoint", cart);
       if (!cart) return res.status(404).json({ message: "Cart not found" });
       res.status(200).json({ response: "success", cart });
     } catch (error) {

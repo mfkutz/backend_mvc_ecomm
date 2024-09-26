@@ -29,8 +29,6 @@ function initializePassport() {
       async (payload, done) => {
         try {
           const user = await userService.findOne({ email: payload.email }, { password: 0 });
-
-          console.log("from here", user);
           if (!user) return done({ message: "User not found ", status: 404 });
           return done(null, user);
         } catch (error) {
@@ -51,9 +49,6 @@ function initializePassport() {
         try {
           const user = await userService.findOne({ email }, "+password");
           const testDataUser = await userService.findOne({ email });
-
-          console.log("user", user);
-          console.log("testDataUser", testDataUser);
           if (!user) return done(null, false, { message: "User not found" });
           const isPasswordCorrect = await verifyPassword(password, user.password);
           if (!isPasswordCorrect) return done(null, false, { message: "Incorrect password" });
@@ -75,7 +70,15 @@ function initializePassport() {
       },
       async (req, email, password, done) => {
         try {
-          const { first_name, last_name, age, role } = req.body;
+          let { first_name, last_name, age, role } = req.body;
+
+          //Delete spaces in the beginning and end of the string
+          //trim in password is not recommended, user may want to use it
+          first_name = first_name.trim();
+          last_name = last_name.trim();
+          email = email.trim();
+          age = age.trim();
+          role = role.trim();
 
           if (!first_name || !last_name || !email || !password || !age) {
             return done(null, false, { message: "All fields are required" });
@@ -94,8 +97,6 @@ function initializePassport() {
             role,
             password: hashPassword,
           });
-
-          console.log("creating user", user);
           return done(null, user);
         } catch (error) {
           return done(null, false, { message: error.message });
